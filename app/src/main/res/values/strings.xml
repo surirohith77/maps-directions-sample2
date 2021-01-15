@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Maps_Demo</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <!--<string name="google_maps_api_key">AIzaSyCVfLaeL5PmrkTMatBKkiytrOX2wwZrNZI</string>-->
+
+    <string name="google_maps_api_key">AIzaSyCRXrfv5CD95ramaXxHkDKShaR2YCJEu3g</string>
+    <string name="map_text">Click here to set location on map</string>
+    <string name="send_your_current_location">Send your current Location</string>
+    <string name="dom">https://vishalperipherals.in/delivery/api/add_customer.php?</string>
+</resources>
