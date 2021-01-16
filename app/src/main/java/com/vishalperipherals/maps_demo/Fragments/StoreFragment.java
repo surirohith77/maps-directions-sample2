@@ -2,6 +2,7 @@ package com.vishalperipherals.maps_demo.Fragments;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -30,6 +31,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
+import com.android.volley.Request;
+import com.android.volley.RetryPolicy;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -40,6 +47,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -57,24 +65,34 @@ import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.internal.PolylineEncoding;
 import com.google.maps.model.DirectionsResult;
 import com.google.maps.model.DirectionsRoute;
+import com.vishalperipherals.maps_demo.Internet.NetworkConnection;
 import com.vishalperipherals.maps_demo.LoUtils.MyClusterManagerRender;
+import com.vishalperipherals.maps_demo.Network.ApplicationRequest;
 import com.vishalperipherals.maps_demo.PlacePickerActivity;
 import com.vishalperipherals.maps_demo.R;
+import com.vishalperipherals.maps_demo.Services.LocationService;
 import com.vishalperipherals.maps_demo.models.ClusterMarker;
 import com.vishalperipherals.maps_demo.models.PolylineData;
 import com.vishalperipherals.maps_demo.models.User;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
+import static android.content.Context.ACTIVITY_SERVICE;
 import static com.vishalperipherals.maps_demo.LoUtils.Constants.MAPVIEW_BUNDLE_KEY;
 
 public class StoreFragment extends Fragment implements View.OnClickListener, OnMapReadyCallback,
-        GoogleMap.OnInfoWindowClickListener, GoogleMap.OnPolylineClickListener, GoogleApiClient.ConnectionCallbacks,
+        GoogleMap.OnInfoWindowClickListener, GoogleMap.OnPolylineClickListener /*, GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener {
+        LocationListener*/ {
 
     Activity activity;
     View view;
@@ -128,6 +146,8 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
     private double currentLongitude;
     private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
 
+    Double userLatitude, userLongitude;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -158,11 +178,18 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
         btnClick.setOnClickListener(v -> startActivity(new Intent(activity, PlacePickerActivity.class)));
 
-        calculateDirections();
+
+        startLocationService();
+
+        getUserLocationhttpRequest();
+
+
         return view;
     }
 
-    private void getLocation() {
+
+
+ /*   private void getLocation() {
 
         mGoogleApiClient = new GoogleApiClient.Builder(activity)
                 // The next two lines tell the new client that “this” current class will handle connection stuff
@@ -180,7 +207,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
 
     }
-
+*/
 
     private void initGoogleMap(Bundle savedInstanceState) {
 
@@ -207,10 +234,11 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
             resetMap();
 
             if (mClusterManager == null) {
-                mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
+                //mClusterManager = new ClusterManager<ClusterMarker>(getActivity().getApplicationContext(), mGoogleMap);
+                mClusterManager = new ClusterManager<ClusterMarker>(activity, mGoogleMap);
             }
 
-            if (mClusterManagerRenderer == null){
+            if (mClusterManagerRenderer == null) {
 
                 mClusterManagerRenderer = new MyClusterManagerRender(
                         activity,
@@ -220,12 +248,13 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                 mClusterManager.setRenderer(mClusterManagerRenderer);
 
             }
-
             int avatar = R.drawable.delivery_boy;
 
+            //   if (userLatitude!=null && userLongitude!=null){
+
             ClusterMarker newClusterMarker = new ClusterMarker(
-                //    new LatLng(17.3615636, 78.4724758),
-                    new LatLng( 17.4782299,78.4133336),
+                    // new LatLng(17.3615636, 78.4724758),
+                    new LatLng(userLatitude, userLongitude),
                     "Rohith",
                     "this is you",
                     avatar
@@ -237,19 +266,21 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
             mClusterManager.cluster();
 
 //              setCameraView();
+            //}
+
         }
     }
 
-    private void resetSelectedMarker(){
-        if(mSelectedMarker != null){
+    private void resetSelectedMarker() {
+        if (mSelectedMarker != null) {
             mSelectedMarker.setVisible(true);
             mSelectedMarker = null;
             removeTripMarkers();
         }
     }
 
-    private void removeTripMarkers(){
-        for(Marker marker: mTripMarkers){
+    private void removeTripMarkers() {
+        for (Marker marker : mTripMarkers) {
             marker.remove();
         }
     }
@@ -267,7 +298,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                 mClusterMarkers = new ArrayList<>();
             }
             //setCameraView();
-            if(mPolyLinesData.size() > 0){
+            if (mPolyLinesData.size() > 0) {
                 mPolyLinesData.clear();
                 mPolyLinesData = new ArrayList<>();
             }
@@ -298,7 +329,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         //startUserLocationsRunnable();
 
 
-        mGoogleApiClient.connect();
+        //  mGoogleApiClient.connect();
     }
 
     @Override
@@ -315,32 +346,37 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         Log.v(this.getClass().getSimpleName(), "onPause()");
 
         //Disconnect from API onPause()
-        if (mGoogleApiClient.isConnected()) {
+        /*if (mGoogleApiClient.isConnected()) {
             LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
             mGoogleApiClient.disconnect();
         }
 
-
+*/
     }
 
     @Override
     public void onMapReady(GoogleMap map) {
-        //   map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
+         //  map.addMarker(new MarkerOptions().position(new LatLng(0, 0)).title("Marker"));
         //
-
 
         mGoogleMap = map;
         // setCameraView();
 
-
         mGoogleMap.setOnInfoWindowClickListener(this);
         mGoogleMap.setOnPolylineClickListener(this);
+
         //   mGoogleMap.setInfoWindowAdapter(this);
 
+      //  addMapMarkers();
+   /* if (userLatitude!=null && userLongitude!=null){
+
         addMapMarkers();
+    }*/
 
 
     }
+
+
 
     @Override
     public void onPause() {
@@ -508,7 +544,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
         directions.origin(
                 new com.google.maps.model.LatLng(
-                        17.4782299,78.4133336
+                        userLatitude,userLongitude
                 )
         );
 
@@ -701,7 +737,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
      * If connected get lat and long
      *
      */
-    @Override
+   /* @Override
     public void onConnected(Bundle bundle) {
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -733,45 +769,172 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-        /*
+        *//*
          * Google Play services can resolve some errors it detects.
          * If the error has a resolution, try sending an Intent to
          * start a Google Play services activity that can resolve
          * error.
-         */
+         *//*
         if (connectionResult.hasResolution()) {
             try {
                 // Start an Activity that tries to resolve the error
                 connectionResult.startResolutionForResult(activity, CONNECTION_FAILURE_RESOLUTION_REQUEST);
-                /*
+                *//*
                  * Thrown if Google Play services canceled the original
                  * PendingIntent
-                 */
+                 *//*
             } catch (IntentSender.SendIntentException e) {
                 // Log the error
                 e.printStackTrace();
             }
         } else {
-            /*
+            *//*
              * If no resolution is available, display a dialog to the
              * user with the error.
-             */
+             *//*
             Log.e("Error", "Location services connection failed with code " + connectionResult.getErrorCode());
         }
     }
 
-    /**
+    *//**
      * If locationChanges change lat and long
      *
      *
      * @param location
-     */
+     *//*
     @Override
     public void onLocationChanged(Location location) {
         currentLatitude = location.getLatitude();
         currentLongitude = location.getLongitude();
 
         Toast.makeText(activity, currentLatitude + " WORKS " + currentLongitude + "", Toast.LENGTH_LONG).show();
+    }
+
+*/
+    private void startLocationService(){
+
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(activity, LocationService.class);
+//        this.startService(serviceIntent);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+
+               activity.startForegroundService(serviceIntent);
+            } else {
+
+                activity.startService(serviceIntent);
+
+            }
+        }
+    }
+
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager) getActivity().getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.vishalperipherals.maps_demo.Services".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
+
+    private void getUserLocationhttpRequest() {
+
+        if (!NetworkConnection.isConnected(activity)){
+            Toast.makeText(activity, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String url = "https://vishalperipherals.in/delivery/api/update_cus.php?";
+
+
+        StringRequest jsonRequest = new StringRequest(Request.Method.POST, url, new com.android.volley.Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+
+
+                try {
+                    JSONObject jsonObject  = new JSONObject(response);
+
+                    JSONArray jsonArray = jsonObject.getJSONArray("customer");
+
+                    int length = jsonArray.length();
+
+                    for (int index = 0; index < length; index++) {
+
+
+                        JSONObject object = jsonArray.getJSONObject(index);
+
+                        //  User item = new User();
+
+                      /*  item.setCustomer_id(object.getString("customer_id"));
+                        item.setCustomer_name(object.getString("customer_name"));
+                        item.setCustomer_email(object.getString("customer_email"));
+                        item.setCustomer_telephone(object.getString("customer_telephone"));
+
+*/
+                        Integer success = object.getInt("success");
+
+                        if (success==1) {
+
+                           userLatitude = Double.valueOf(object.getString("customer_latitude_update"));
+                          userLongitude = Double.valueOf(object.getString("customer_longitude_update"));
+
+                            calculateDirections();
+                            addMapMarkers();
+                        }
+                        else {
+
+                            Toast.makeText(activity, "Server return invalid response ", Toast.LENGTH_SHORT).show();
+                        }
+                        // iconSubCategoriesList.add(item);
+                    }
+                }
+
+                catch (JSONException e) {
+                    e.printStackTrace();
+
+                    Toast.makeText(activity, "Invalid response from the server ", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+
+        }, new com.android.volley.Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+
+
+                Toast.makeText(activity, "Something went wrong ", Toast.LENGTH_SHORT).show();
+
+            }
+
+        }){
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                //Adding the parameters to the request
+                params.put("action", "trackorder");
+                params.put("cid", "3");
+
+                return params;
+            }
+
+        };
+
+        int socketTimeout = 30000; //30 seconds - change to what you want
+        RetryPolicy policy = new DefaultRetryPolicy(
+                socketTimeout,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT);
+
+
+        jsonRequest.setRetryPolicy(policy);
+
+        ApplicationRequest.getInstance(activity).addToRequestQueue(jsonRequest);
+
+
     }
 
 }
