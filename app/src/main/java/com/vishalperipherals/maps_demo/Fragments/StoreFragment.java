@@ -40,8 +40,10 @@ import com.android.volley.toolbox.StringRequest;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -58,6 +60,11 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.maps.DirectionsApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.PendingResult;
@@ -72,6 +79,7 @@ import com.vishalperipherals.maps_demo.PlacePickerActivity;
 import com.vishalperipherals.maps_demo.R;
 import com.vishalperipherals.maps_demo.Services.LocationService;
 import com.vishalperipherals.maps_demo.models.ClusterMarker;
+import com.vishalperipherals.maps_demo.models.Customer_LatLng;
 import com.vishalperipherals.maps_demo.models.PolylineData;
 import com.vishalperipherals.maps_demo.models.User;
 
@@ -81,6 +89,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -148,6 +157,15 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
     Double userLatitude, userLongitude;
 
+
+    private FusedLocationProviderClient mFusedLocationClient;
+    private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
+    private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
+
+
+    int counter = 0;
+    DatabaseReference drl;
+
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
@@ -161,6 +179,8 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         view = inflater.inflate(R.layout.store_fragment, container, false);
 
         mMapView = (MapView) view.findViewById(R.id.user_list_map);
+
+        drl = FirebaseDatabase.getInstance().getReference("loc");
 
         initGoogleMap(savedInstanceState);
 
@@ -184,7 +204,73 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         getUserLocationhttpRequest();
 
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
+
+      //  getLocation();
+
+     //   getLocFromFbase();
+
+      //  calculateDirections();
+
         return view;
+    }
+
+
+    private void getLocation() {
+
+
+
+        // ---------------------------------- LocationRequest ------------------------------------
+        // Create the location request to start receiving updates
+        LocationRequest mLocationRequestHighAccuracy = new LocationRequest();
+        mLocationRequestHighAccuracy.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequestHighAccuracy.setInterval(UPDATE_INTERVAL);
+        mLocationRequestHighAccuracy.setFastestInterval(FASTEST_INTERVAL);
+
+
+        // new Google API SDK v11 uses getFusedLocationProviderClient(this)
+
+        Log.d(TAG, "getLocation: getting location information.");
+        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(activity, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        mFusedLocationClient.requestLocationUpdates(mLocationRequestHighAccuracy, new LocationCallback() {
+                    @Override
+                    public void onLocationResult(LocationResult locationResult) {
+
+                        Log.d(TAG, "onLocationResult: got location result.");
+
+                        Location location = locationResult.getLastLocation();
+
+                       /* if (location != null) {
+                            User user = ((UserClient)(getApplicationContext())).getUser();
+                            GeoPoint geoPoint = new GeoPoint(location.getLatitude(), location.getLongitude());
+                            UserLocation userLocation = new UserLocation(geoPoint,null,user);
+                            saveUserLocation(userLocation);
+                        }*/
+                        if (location != null) {
+
+                            //  Toast.makeText(LocationService.this, ""+location.getLatitude()+"\n"+location.getLongitude(), Toast.LENGTH_SHORT).show();
+                          ///  sendhttprequest(location.getLatitude(), location.getLongitude());
+
+                            userLatitude = location.getLatitude();
+                            userLongitude  = location.getLongitude();
+
+                            counter++;
+                            calculateDirections();
+                            addMapMarkers();
+
+                        }
+                    }
+                },
+                Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
 
 
@@ -226,6 +312,36 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                     .build();
         }
     }
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+
+        Bundle mapViewBundle = outState.getBundle(MAPVIEW_BUNDLE_KEY);
+        if (mapViewBundle == null) {
+            mapViewBundle = new Bundle();
+            outState.putBundle(MAPVIEW_BUNDLE_KEY, mapViewBundle);
+        }
+
+        mMapView.onSaveInstanceState(mapViewBundle);
+    }
+
+    private void startUserLocationsRunnable(){
+        Log.d(TAG, "startUserLocationsRunnable: starting runnable for retrieving updated locations.");
+        mHandler.postDelayed(mRunnable = new Runnable() {
+            @Override
+            public void run() {
+                getLocFromFbase();
+                mHandler.postDelayed(mRunnable, LOCATION_UPDATE_INTERVAL);
+            }
+        }, LOCATION_UPDATE_INTERVAL);
+    }
+
+    private void stopLocationUpdates(){
+        mHandler.removeCallbacks(mRunnable);
+    }
+
 
     private void addMapMarkers() {
 
@@ -305,6 +421,8 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         }
     }
 
+
+
     private void setCameraView() {
 
         // Overall mapview window 0.2 * 0.2 = 0.04
@@ -326,7 +444,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
     public void onResume() {
         super.onResume();
         mMapView.onResume();
-        //startUserLocationsRunnable();
+        startUserLocationsRunnable();
 
 
         //  mGoogleApiClient.connect();
@@ -370,10 +488,10 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
       //  addMapMarkers();
    /* if (userLatitude!=null && userLongitude!=null){
 
-        addMapMarkers();
+
     }*/
 
-
+        //addMapMarkers();
     }
 
 
@@ -388,7 +506,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
     public void onDestroy() {
         mMapView.onDestroy();
         super.onDestroy();
-        //  stopLocationUpdates();
+          stopLocationUpdates();
     }
 
     @Override
@@ -542,11 +660,14 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                 )
         );*/
 
-        directions.origin(
-                new com.google.maps.model.LatLng(
-                        userLatitude,userLongitude
-                )
-        );
+        if (userLongitude!=null  && userLatitude != null) {
+            directions.origin(
+                    new com.google.maps.model.LatLng(
+                            userLatitude, userLongitude
+                    )
+            );
+
+        }
 
 /*
         directions.origin(
@@ -621,6 +742,10 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                     if(tempDuration < duration){
                         duration = tempDuration;
                         onPolylineClick(polyline);
+
+                       /* if (counter == 1) {
+                            zoomRoute(polyline.getPoints());
+                        }*/
                         zoomRoute(polyline.getPoints());
                     }
 
@@ -630,6 +755,8 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
             }
         });
     }
+
+
 
 
 
@@ -936,5 +1063,83 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
 
     }
+
+
+    private void getLocFromFbase(){
+
+
+        if (!NetworkConnection.isConnected(activity)){
+            Toast.makeText(activity, "No Internet Connection", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        drl.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+
+
+                    Customer_LatLng customer_latLng = postSnapshot.getValue(Customer_LatLng.class);
+
+                   userLatitude = customer_latLng.getLat();
+                    userLongitude =  customer_latLng.getLng();
+
+                    for (int i = 0; i < mClusterMarkers.size(); i++) {
+                        try {
+
+                            LatLng updatedLatLng = new LatLng(
+                                    userLatitude,
+                                    userLongitude
+                            );
+
+                            Toast.makeText(activity, ""+updatedLatLng, Toast.LENGTH_SHORT).show();
+                                mClusterMarkers.get(i).setPosition(updatedLatLng);
+                                mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
+                            }
+
+
+                         catch (NullPointerException e) {
+                            Log.e(TAG, "retrieveUserLocations: NullPointerException: " + e.getMessage());
+                        }
+                    }
+
+                    //calculateDirections();
+
+                }
+
+                //    updateViews("No customers till now", R.drawable.monkey_confusion);
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                //progressDialog.dismiss();
+                //  updateViews("Something went wrong", R.drawable.monkey_anger3);
+                Toast.makeText(activity, "Something went wrong", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+    }
+
+
+  /*  @Override
+    public void onUserClicked(int position) {
+
+        Log.d(TAG, "onUserClicked: selected a user: " + mUserList.get(position).toString());
+        String selectedUserId = mUserList.get(position).getUser_id();
+
+        for(ClusterMarker clusterMarker: mClusterMarkers){
+            if(selectedUserId.equals(clusterMarker.getUser().getUser_id())){
+                mGoogleMap.animateCamera(
+                        CameraUpdateFactory.newLatLng(
+                                new LatLng(clusterMarker.getPosition().latitude, clusterMarker.getPosition().longitude)),
+                        600,
+                        null
+                );
+                break;
+            }
+        }
+    }*/
 
 }

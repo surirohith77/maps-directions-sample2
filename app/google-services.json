@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "847409816571",
+    "project_id": "maps-demo-42328",
+    "storage_bucket": "maps-demo-42328.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:847409816571:android:5778debdf43128eb76615e",
+        "android_client_info": {
+          "package_name": "com.vishalperipherals.maps_demo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "847409816571-tpostee4ad8run1pvp33a4s6nd2vgkvc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALx8GK4wrdFHByqz3XEbdh4L5I3x_m2ZM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "847409816571-tpostee4ad8run1pvp33a4s6nd2vgkvc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

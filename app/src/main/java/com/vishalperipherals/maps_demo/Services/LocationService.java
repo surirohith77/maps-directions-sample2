@@ -30,8 +30,11 @@ import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.vishalperipherals.maps_demo.Internet.NetworkConnection;
 import com.vishalperipherals.maps_demo.Network.ApplicationRequest;
+import com.vishalperipherals.maps_demo.models.Customer_LatLng;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,6 +51,8 @@ public class LocationService  extends Service {
     private final static long UPDATE_INTERVAL = 4 * 1000;  /* 4 secs */
     private final static long FASTEST_INTERVAL = 2000; /* 2 sec */
 
+    DatabaseReference drl;
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -57,6 +62,8 @@ public class LocationService  extends Service {
 
     @Override
     public void onCreate() {
+
+        drl = FirebaseDatabase.getInstance().getReference("loc");
 
         super.onCreate();
 
@@ -121,14 +128,16 @@ public class LocationService  extends Service {
                         }*/
                         if (location != null){
 
-                            Toast.makeText(LocationService.this, ""+location.getLatitude()+"\n"+location.getLongitude(), Toast.LENGTH_SHORT).show();
+                          //  Toast.makeText(LocationService.this, ""+location.getLatitude()+"\n"+location.getLongitude(), Toast.LENGTH_SHORT).show();
                             sendhttprequest(location.getLatitude(),location.getLongitude());
-
+                            savetoFbase(location.getLatitude(),location.getLongitude());
                         }
                     }
                 },
                 Looper.myLooper()); // Looper.myLooper tells this to repeat forever until thread is destroyed
     }
+
+
 
     private void sendhttprequest(double latitude, double longitude) {
 
@@ -230,6 +239,15 @@ public class LocationService  extends Service {
 
 
 
+    }
+
+
+    private void savetoFbase(double latitude, double longitude) {
+
+
+        Customer_LatLng customer_latLng = new Customer_LatLng(latitude,longitude);
+        String id = drl.push().getKey();
+        drl.child("rohith").setValue(customer_latLng);
     }
 
 
