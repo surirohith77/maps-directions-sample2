@@ -7,10 +7,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentSender;
 import android.content.pm.PackageManager;
 import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -37,11 +35,9 @@ import com.android.volley.Request;
 import com.android.volley.RetryPolicy;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
@@ -49,7 +45,6 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
@@ -58,8 +53,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -75,7 +68,7 @@ import com.google.maps.model.DirectionsRoute;
 import com.vishalperipherals.maps_demo.Internet.NetworkConnection;
 import com.vishalperipherals.maps_demo.LoUtils.MyClusterManagerRender;
 import com.vishalperipherals.maps_demo.Network.ApplicationRequest;
-import com.vishalperipherals.maps_demo.PlacePickerActivity;
+import com.vishalperipherals.maps_demo.Activities.PlacePickerActivity;
 import com.vishalperipherals.maps_demo.R;
 import com.vishalperipherals.maps_demo.Services.LocationService;
 import com.vishalperipherals.maps_demo.models.ClusterMarker;
@@ -87,12 +80,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import static android.content.Context.ACTIVITY_SERVICE;
@@ -155,7 +145,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
     private double currentLongitude;
     private ArrayList<PolylineData> mPolyLinesData = new ArrayList<>();
 
-    Double userLatitude, userLongitude;
+    Double userLatitude, userLongitude, desti_latitude, desti_longitude;
 
 
     private FusedLocationProviderClient mFusedLocationClient;
@@ -165,6 +155,25 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
     int counter = 0;
     DatabaseReference drl;
+
+    public static StoreFragment newInstance(){
+        return new StoreFragment();
+
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if(getArguments() != null){
+            userLatitude = getArguments().getDouble("user_latitude");
+            userLongitude = getArguments().getDouble("user_longitude");
+            desti_latitude = getArguments().getDouble("desti_latitude");
+            desti_longitude = getArguments().getDouble("desti_longitude");
+
+          //  Toast.makeText(activity, ""+userLongitude+"/n"+userLatitude, Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -201,7 +210,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
         startLocationService();
 
-        getUserLocationhttpRequest();
+        //getUserLocationhttpRequest();
 
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(activity);
@@ -210,7 +219,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
      //   getLocFromFbase();
 
-      //  calculateDirections();
+       calculateDirections();
 
         return view;
     }
@@ -491,7 +500,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
     }*/
 
-        //addMapMarkers();
+        addMapMarkers();
     }
 
 
@@ -644,9 +653,14 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                 marker.getPosition().longitude
         );*/
 
-        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+      /*  com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
                 17.433004,
                 78.4221764
+        );*/
+
+        com.google.maps.model.LatLng destination = new com.google.maps.model.LatLng(
+                desti_latitude,
+                desti_longitude
         );
 
         DirectionsApiRequest directions = new DirectionsApiRequest(mGeoApiContext);
@@ -1093,7 +1107,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                                     userLongitude
                             );
 
-                            Toast.makeText(activity, ""+updatedLatLng, Toast.LENGTH_SHORT).show();
+                       //     Toast.makeText(activity, ""+updatedLatLng, Toast.LENGTH_SHORT).show();
                                 mClusterMarkers.get(i).setPosition(updatedLatLng);
                                 mClusterManagerRenderer.setUpdateMarker(mClusterMarkers.get(i));
                             }

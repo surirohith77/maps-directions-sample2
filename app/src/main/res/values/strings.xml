@@ -10,4 +10,7 @@
     <string name="map_text">Click here to set location on map</string>
     <string name="send_your_current_location">Send your current Location</string>
     <string name="dom">https://vishalperipherals.in/delivery/api/add_customer.php?</string>
+    <string name="lat">lat</string>
+    <string name="lng">lng</string>
+    <string name="fragment_user_list">user_list</string>
 </resources>

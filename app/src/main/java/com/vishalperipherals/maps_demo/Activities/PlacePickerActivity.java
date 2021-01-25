@@ -1,4 +1,4 @@
-package com.vishalperipherals.maps_demo;
+package com.vishalperipherals.maps_demo.Activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -9,10 +9,8 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
@@ -49,6 +47,7 @@ import com.google.android.gms.tasks.Task;
 import com.vishalperipherals.maps_demo.Internet.NetworkConnection;
 import com.vishalperipherals.maps_demo.LoUtils.GPSTracker;
 import com.vishalperipherals.maps_demo.Network.ApplicationRequest;
+import com.vishalperipherals.maps_demo.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -163,7 +162,7 @@ public class PlacePickerActivity extends AppCompatActivity implements OnMapReady
 
                     //setPreferences();
 
-                    startActivity(new Intent(PlacePickerActivity.this,MainActivity.class));
+                    startActivity(new Intent(PlacePickerActivity.this, MainActivity.class));
                     finish();
                 }else {
 
