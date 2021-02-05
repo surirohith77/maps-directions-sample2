@@ -3,4 +3,41 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/enter_destination"
+        android:inputType="textCapWords"
+        android:id="@+id/etDest"
+        style="@style/Widget.AppCompat.EditText"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginTop="5dp"
+        android:hint="@string/enter_departure"
+        android:inputType="textCapWords"
+        android:id="@+id/etDepart"
+        style="@style/Widget.AppCompat.EditText"/>
+
+    <Button
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:text="Click"
+        android:id="@+id/btnClick"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/fmily_ds2"
+        android:layout_marginTop="30dp"
+        android:layout_gravity="center_horizontal"/>
+
 </LinearLayout>

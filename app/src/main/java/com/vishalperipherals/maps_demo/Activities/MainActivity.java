@@ -8,6 +8,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -19,6 +20,7 @@ import com.vishalperipherals.maps_demo.Fragments.ProfileFragment;
 import com.vishalperipherals.maps_demo.Fragments.ShareFragment;
 import com.vishalperipherals.maps_demo.Fragments.StoreFragment;
 import com.vishalperipherals.maps_demo.R;
+import com.vishalperipherals.maps_demo.lo_medium.MapsActivity2;
 
 public class MainActivity extends AppCompatActivity  implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
@@ -85,7 +87,8 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                         new ShareFragment()).commit();
                 break;
             case R.id.nav_send:
-                Toast.makeText(this, "Send", Toast.LENGTH_SHORT).show();
+             //   Toast.makeText(this, "Send", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, MapsActivity2.class));
                 break;
 
         }

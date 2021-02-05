@@ -13,4 +13,7 @@
     <string name="lat">lat</string>
     <string name="lng">lng</string>
     <string name="fragment_user_list">user_list</string>
+    <string name="enter_departure">Enter Departure</string>
+    <string name="enter_destination">Enter Destination</string>
+    <string name="title_activity_maps2">Map</string>
 </resources>

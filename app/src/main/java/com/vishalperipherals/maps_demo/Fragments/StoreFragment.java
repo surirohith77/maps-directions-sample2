@@ -208,7 +208,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         btnClick.setOnClickListener(v -> startActivity(new Intent(activity, PlacePickerActivity.class)));
 
 
-        startLocationService();
+
 
         //getUserLocationhttpRequest();
 
@@ -749,7 +749,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
                     mPolyLinesData.add(new PolylineData(polyline, route.legs[0]));
 
-                    //  onPolylineClick(polyline);
+                     //onPolylineClick(polyline);
 
                     // highlight the fastest route and adjust camera
                     double tempDuration = route.legs[0].duration.inSeconds;
@@ -757,9 +757,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
                         duration = tempDuration;
                         onPolylineClick(polyline);
 
-                       /* if (counter == 1) {
-                            zoomRoute(polyline.getPoints());
-                        }*/
+
                         zoomRoute(polyline.getPoints());
                     }
 
@@ -952,34 +950,6 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
     }
 
 */
-    private void startLocationService(){
-
-        if(!isLocationServiceRunning()){
-            Intent serviceIntent = new Intent(activity, LocationService.class);
-//        this.startService(serviceIntent);
-
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
-
-               activity.startForegroundService(serviceIntent);
-            } else {
-
-                activity.startService(serviceIntent);
-
-            }
-        }
-    }
-
-    private boolean isLocationServiceRunning() {
-        ActivityManager manager = (ActivityManager) getActivity().getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
-            if("com.vishalperipherals.maps_demo.Services".equals(service.service.getClassName())) {
-                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
-                return true;
-            }
-        }
-        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
-        return false;
-    }
 
     private void getUserLocationhttpRequest() {
 
@@ -1096,7 +1066,7 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
 
                     Customer_LatLng customer_latLng = postSnapshot.getValue(Customer_LatLng.class);
 
-                   userLatitude = customer_latLng.getLat();
+                    userLatitude = customer_latLng.getLat();
                     userLongitude =  customer_latLng.getLng();
 
                     for (int i = 0; i < mClusterMarkers.size(); i++) {

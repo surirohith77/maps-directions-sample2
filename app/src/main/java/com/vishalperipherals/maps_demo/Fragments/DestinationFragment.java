@@ -39,6 +39,8 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -321,9 +323,7 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
                 public void onComplete(@NonNull Task<Location> task) {
                     if (task.isSuccessful()) {
 
-
                     // Set the map's camera position to the current location of the device.
-
 
                         if (latAutoSearch != null && lngAutoSearch != null){
 
@@ -374,6 +374,16 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
                             }
 
                             marker = mMap.addMarker(new MarkerOptions().position(currentLocationLATLNG).title("Custom location").icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)).draggable(true).visible(true));
+
+
+                       /*     mMap.addCircle(new CircleOptions()
+                                    .center(currentLocationLATLNG)
+                                    .radius(100)
+                                    .strokeWidth(0f)
+                                    .fillColor(0x550000FF));*/
+
+
+
 
                             Geocoder geocoder = new Geocoder(getActivity(), Locale.getDefault());
                             try {
@@ -438,10 +448,6 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
             super.onSaveInstanceState(outState);
         }
     }
-
-
-
-
 
 
     @SuppressLint("MissingPermission")
@@ -541,7 +547,7 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
 
                 getGEOCODE();
 
-                Toast.makeText(activity,"latlag:-- "+position,Toast.LENGTH_LONG).show();
+               // Toast.makeText(activity,"latlag:-- "+position,Toast.LENGTH_LONG).show();
 
                 checkPositoin = position;
 
@@ -549,6 +555,8 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
             }
 
         });
+
+
     }
 
 
@@ -584,7 +592,7 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
             String country = addresses.get(0).getCountryName();
 
             // Toast.makeText(MainActivity.this, ""+city+state+"\n"+zip+"\n"+country, Toast.LENGTH_LONG).show();
-            Toast.makeText(activity, ""+address, Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "area "+subLocality+"\n city "+city+"\n dist"+subAdminArea, Toast.LENGTH_LONG).show();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -643,15 +651,10 @@ public class DestinationFragment extends Fragment implements OnMapReadyCallback,
 
     }
 
-
     @Override
     public void onLowMemory() {
         super.onLowMemory();
 
     }
-
-
-
-
 
 }

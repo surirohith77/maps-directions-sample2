@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.app.ActivityManager;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -20,10 +22,12 @@ import com.google.firebase.database.ValueEventListener;
 import com.vishalperipherals.maps_demo.Fragments.StoreFragment;
 import com.vishalperipherals.maps_demo.Internet.NetworkConnection;
 import com.vishalperipherals.maps_demo.R;
+import com.vishalperipherals.maps_demo.Services.LocationService;
 import com.vishalperipherals.maps_demo.models.Customer_LatLng;
 
 public class RouteActivity extends AppCompatActivity {
 
+    private static final String TAG = "loc_service";
     Double desti_latitude, desti_longitude, userLatitude, userLongitude;
     DatabaseReference drl;
 
@@ -43,6 +47,8 @@ public class RouteActivity extends AppCompatActivity {
         }
 
         initTool();
+
+        startLocationService();
 
         getLocFromFbase();
 
@@ -148,4 +154,36 @@ public class RouteActivity extends AppCompatActivity {
 
         inflateDirFragment();
     }
+
+
+    private void startLocationService(){
+
+        if(!isLocationServiceRunning()){
+            Intent serviceIntent = new Intent(RouteActivity.this, LocationService.class);
+//        this.startService(serviceIntent);
+
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O){
+
+                RouteActivity.this.startForegroundService(serviceIntent);
+
+            } else {
+
+                RouteActivity.this.startService(serviceIntent);
+
+            }
+        }
+    }
+
+    private boolean isLocationServiceRunning() {
+        ActivityManager manager = (ActivityManager)RouteActivity.this.getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)){
+            if("com.vishalperipherals.maps_demo.Services".equals(service.service.getClassName())) {
+                Log.d(TAG, "isLocationServiceRunning: location service is already running.");
+                return true;
+            }
+        }
+        Log.d(TAG, "isLocationServiceRunning: location service is not running.");
+        return false;
+    }
+
 }
