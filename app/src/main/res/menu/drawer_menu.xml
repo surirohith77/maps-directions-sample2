@@ -19,12 +19,21 @@
 
     <item android:title="Communicate">
         <menu>
+
             <item
                 android:id="@+id/nav_share"
                 android:title="Share" />
+
             <item
                 android:id="@+id/nav_send"
                 android:title="Send" />
+
+            <item
+                android:id="@+id/nav_new_route"
+                android:title="New Route" />
+
+           
+
         </menu>
     </item>
 

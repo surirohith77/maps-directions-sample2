@@ -52,7 +52,7 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-               String dest = etDest.getText().toString().trim();
+                String dest = etDest.getText().toString().trim();
                 String depart = etDepart.getText().toString().trim();
 
                 if (dest.isEmpty()){
@@ -82,7 +82,9 @@ public class ProfileFragment extends Fragment {
             intent.setPackage("com.google.android.apps.maps");
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);
-        }catch (ActivityNotFoundException an){
+        }catch (ActivityNotFoundException an)
+        {
+
 
         Uri uri = Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.apps.maps");
             Intent intent = new Intent(Intent.ACTION_VIEW,uri);

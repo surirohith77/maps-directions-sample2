@@ -455,15 +455,16 @@ public class StoreFragment extends Fragment implements View.OnClickListener, OnM
         mMapView.onResume();
         startUserLocationsRunnable();
 
-
         //  mGoogleApiClient.connect();
     }
+
 
     @Override
     public void onStart() {
         super.onStart();
         mMapView.onStart();
     }
+
 
     @Override
     public void onStop() {

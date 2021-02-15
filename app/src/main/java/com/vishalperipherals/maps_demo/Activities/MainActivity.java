@@ -86,9 +86,15 @@ public class MainActivity extends AppCompatActivity  implements NavigationView.O
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container,
                         new ShareFragment()).commit();
                 break;
+
             case R.id.nav_send:
              //   Toast.makeText(this, "Send", Toast.LENGTH_SHORT).show();
                 startActivity(new Intent(this, MapsActivity2.class));
+                break;
+
+            case R.id.nav_new_route:
+                //   Toast.makeText(this, "Send", Toast.LENGTH_SHORT).show();
+                startActivity(new Intent(this, RouteTrActivity.class));
                 break;
 
         }

@@ -332,7 +332,8 @@ public class DeliveryFragment extends Fragment {
     private void uploadtoStorage(){
 
 
-        final StorageReference filepath = storageReference.child(String.valueOf(System.currentTimeMillis()));
+       // final StorageReference filepath = storageReference.child(String.valueOf(System.currentTimeMillis()));
+        final StorageReference filepath = storageReference.child("Category");
 
         final UploadTask uploadTask = filepath.putFile(imageUri);
 
@@ -373,8 +374,6 @@ public class DeliveryFragment extends Fragment {
 
                             savetodatabase();
 
-
-
                       /*  Intent intent = new Intent(getContext(),ViewallFragment.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         startActivity(intent);*/
@@ -407,7 +406,6 @@ public class DeliveryFragment extends Fragment {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
 
                 fhandlerList.clear();
 

@@ -53,7 +53,6 @@ public class RouteActivity extends AppCompatActivity {
         getLocFromFbase();
 
 
-
     }
 
     private void initTool() {
@@ -77,22 +76,14 @@ public class RouteActivity extends AppCompatActivity {
 
                 for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
 
-
                     Customer_LatLng customer_latLng = postSnapshot.getValue(Customer_LatLng.class);
 
                     assert customer_latLng != null;
                     userLatitude = customer_latLng.getLat();
                     userLongitude =  customer_latLng.getLng();
 
-
-
                     //calculateDirections();
-
                 }
-
-
-
-
                 //    updateViews("No customers till now", R.drawable.monkey_confusion);
 
             }
@@ -104,10 +95,6 @@ public class RouteActivity extends AppCompatActivity {
                 Toast.makeText(RouteActivity.this, "Something went wrong", Toast.LENGTH_SHORT).show();
 
             }
-
-
-
-
 
         });
     }
